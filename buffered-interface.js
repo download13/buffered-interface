@@ -1,45 +1,53 @@
+var CallbackBuffer = require('./methods/callback');
+
+var ReadStreamBuffer = require('./methods/readstream');
+
+var WriteStreamBuffer = require('./methods/writestream');
+
+
 var _slice = Array.prototype.slice;
 
 
-function createBufferedInterface(methodNames, base) {
+function createBufferedInterface(methods, base) {
 	var self = base || {};
 
 	var callsFlushed = false;
 
-	var calls = {};
+	var buffers = [];
 
 
 	// Create the methods that need to be buffered
-	methodNames.forEach(function(methodName) {
-		var methodCalls = calls[methodName] = [];
+	Object.keys(methods).forEach(function(methodName) {
+		var methodType = methods[methodName];
 
-		self[methodName] = function() {
-			var args = _slice.call(arguments);
+		var buffer;
 
-			if(callsFlushed) {
-				self._call(methodName, args);
-			} else {
-				methodCalls.push(args);
-			}
-		};
+		switch(methodType) {
+		case 'callback':
+			buffer = new CallbackBuffer(methodName);
+			break;
+
+		case 'readstream':
+			buffer = new ReadStreamBuffer(methodName);
+			break;
+
+		case 'writestream':
+			buffer = new WriteStreamBuffer(methodName);
+		}
+
+		buffers.push(buffer);
+
+		self[methodName] = buffer.call;
 	});
 
 	// Call this when it is safe to make the calls to the parent object
 	function ready(superObject) {
-		self._call = function(methodName, args) {
-			superObject[methodName].apply(superObject, args);
-		};
-
 		if(!callsFlushed) {
-			Object.keys(calls).forEach(function(methodName) {
-				calls[methodName].forEach(function(args) {
-					self._call(methodName, args);
-				});
+			buffers.forEach(function(buffer) {
+				buffer.ready(superObject);
 			});
 
 			callsFlushed = true;
-
-			calls = null;
 		}
 	};
 

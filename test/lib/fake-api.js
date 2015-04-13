@@ -1,3 +1,8 @@
+var concatStream = require('concat-stream-callback');
+
+var PassThrough = require('stream').PassThrough;
+
+
 function createFakeAPI(cb) {
 	var api = {};
 
@@ -17,10 +22,29 @@ function createFakeAPI(cb) {
 		});
 	};
 
+	api.getReadStream = function(name) {
+		var stream = new PassThrough();
+
+		setTimeout(function() {
+			stream.end(props[name]);
+		}, 50);
+
+		return stream;
+	};
+
+	api.getWriteStream = function(name) {
+		var stream = new PassThrough();
+
+		concatStream(stream, function(err, value) {
+			props[name] = value;
+		});
+
+		return stream;
+	};
+
 	setTimeout(function() {
-		console.log('d');
 		cb(null, api);
-	}, 200);
+	}, 80);
 }
 
 
