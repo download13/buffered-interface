@@ -1,6 +1,6 @@
 {
   "name": "buffered-interface",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Buffers method calls to an object until the object is ready",
   "main": "buffered-interface.js",
   "directories": {
@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/download13/buffered-interface/issues"
   },
-  "homepage": "https://github.com/download13/buffered-interface"
+  "homepage": "https://github.com/download13/buffered-interface",
+  "devDependencies": {
+    "concat-stream-callback": "^1.0.1"
+  }
 }
